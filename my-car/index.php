@@ -97,7 +97,7 @@ try {
         } else
           echo(json_encode(array("errors" => array("Driver required!"))));
       } else
-        echo(json_encode(array("errors" => array("Valid password required in API-Key-Password header!)"))));
+        echo(json_encode(array("errors" => array("Valid password required in API-Key-Password header!"))));
       break;
     case "GET": // The request is using the GET method
       $car_info_stmt = $file_db->query("SELECT attribute_val FROM car_info WHERE attribute_key = 'current_counter_value'");
