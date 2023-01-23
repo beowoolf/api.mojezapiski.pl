@@ -14,6 +14,10 @@ if (!isset($request["sitemap"]) || !$request["sitemap"]) die(json_encode("Setted
 
 if (!filter_var($request["sitemap"], FILTER_VALIDATE_URL)) die(json_encode("Valid sitemap in JSON is required!"));
 
+$page_url = explode("/", $request["sitemap"]);
+unset($page_url[count($page_url)-1]);
+//$page_url = implode("/", $url_array);
+
 $curl = curl_init();
 
 curl_setopt_array($curl, [
@@ -50,6 +54,12 @@ if ($err) {
         $preload_resources_final_list = array();
         foreach ($xml->url as $key => $value) {
             $page = $value->loc; // substr($value->loc, 0, -1);
+            $url_array = explode("/", $page);
+            $url_array[0] = $page_url[0];
+            $url_array[2] = $page_url[2];
+            $page = implode("/", $url_array);
+            //error_log("$page\n", 3, __DIR__."/log.txt");
+
             $curl = curl_init();
 
             curl_setopt_array($curl, [
