@@ -106,6 +106,6 @@ if ($err) {
                 }
             }
         }
-        echo(json_encode(array_keys($preload_resources_final_list)));
+        echo(json_encode(array_keys($preload_resources_final_list), JSON_UNESCAPED_SLASHES));
     }
 }
