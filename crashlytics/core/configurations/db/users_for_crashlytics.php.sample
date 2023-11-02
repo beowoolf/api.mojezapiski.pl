@@ -1,0 +1,7 @@
+<?php
+
+$users_for_crashlytics = array(
+    "fill_me" => "fill_me"
+);
+
+?>
