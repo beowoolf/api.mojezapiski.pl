@@ -17,41 +17,98 @@ libxml_use_internal_errors(true);
 // Tworzenie obiektu DOMDocument
 $doc = new DOMDocument();
 
+function tryFindByXPath($xpath, $xpath_arr) {
+    foreach ($xpath_arr as $key => $value) {
+        $nodeList = $xpath->query($value);
+        if ($nodeList->length > 0)
+            return $nodeList->item(0)->nodeValue;
+    }
+    return "";
+}
+
 // Wczytywanie pliku https://strefakursow.pl/kursy/rozwoj_osobisty/kurs_asana_od_podstaw_-_zarzadzanie_projektami.html
 if ($doc->loadHTMLFile($link)) {
     // Tworzenie obiektu DOMXPath
     $xpath = new DOMXPath($doc);
 
     // Wyrażenia XPath
-    $priceXPath = '//*[@id="price-container"]/div[1]/div/div[1]';
-    $titleXPath = '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[2]/h1';
-    $authorProfessionXPath = '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p';
-    $authorNameXPath = '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()';
-    $authorProfileURLXPath = '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href';
+    $currentPriceXPath = array(
+        '//*[@id="price-container"]/div[1]/div/div[1]',
+        '//*[@id="price-container"]/div[1]/div/div[2]/text()'
+    );
+    //$parsedXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
+    //$priceXPath = '//*[@id="price-container"]/div[1]/div/div[1]';
+    //$onlyPriceXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
+    //$newPriceXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
+    $oldPriceXPath = array(
+        '//*[@id="price-container"]/div[1]/div/div[3]'
+    );
+    $titleXPath = array(
+        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[2]/h1',
+        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[2]/h1'
+    );
+    $authorProfessionXPath = array(
+        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p',
+        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p'
+    );
+    $authorNameXPath = array(
+        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()',
+        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()'
+    );
+    $authorProfileURLXPath = array(
+        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href',
+        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href'
+    );
 
     // Wyszukiwanie ceny
-    $priceNodeList = $xpath->query($priceXPath);
+    $currentPrice = tryFindByXPath($xpath, $currentPriceXPath);
+    $currentPrice_len = strlen($currentPrice);
+    $is_currentPrice = $currentPrice_len > 0;
+
+    // Wyszukiwanie starej ceny
+    $oldPrice = tryFindByXPath($xpath, $oldPriceXPath);
+    $oldPrice_len = strlen($oldPrice);
+    $is_oldPrice = $oldPrice_len > 0;
 
     // Wyszukiwanie tytułu kursu
-    $titleNodeList = $xpath->query($titleXPath);
+    $title = tryFindByXPath($xpath, $titleXPath);
+    $title_len = strlen($title);
+    $is_title = $title_len > 0;
 
     // Wyszukiwanie informacji o profesji autora kursu
-    $authorProfessionNodeList = $xpath->query($authorProfessionXPath);
+    $authorProfession = tryFindByXPath($xpath, $authorProfessionXPath);
+    $authorProfession_len = strlen($authorProfession);
+    $is_authorProfession = $authorProfession_len > 0;
 
     // Wyszukiwanie imienia i nazwiska autora kursu
-    $authorNameNodeList = $xpath->query($authorNameXPath);
+    $authorName = tryFindByXPath($xpath, $authorNameXPath);
+    $authorName_len = strlen($authorName);
+    $is_authorName = $authorName_len > 0;
 
     // Wyszukiwanie adresu URL do strony z profilem autora
-    $authorProfileURLNodeList = $xpath->query($authorProfileURLXPath);
+    $authorProfileURL = tryFindByXPath($xpath, $authorProfileURLXPath);
+    $authorProfileURL_len = strlen($authorProfileURL);
+    $is_authorProfileURL = $authorProfileURL_len > 0;
 
     // Inicjalizacja tablicy na dane
     $data = array();
 
     // Sprawdzanie, czy znaleziono węzły
-    if ($priceNodeList->length > 0 && $titleNodeList->length > 0 && $authorProfessionNodeList->length > 0 && $authorNameNodeList->length > 0 && $authorProfileURLNodeList->length > 0) {
+    if ($is_currentPrice && $is_title && $is_authorProfession && $is_authorName && $is_authorProfileURL) {
+        /*
+            if (isOldPrice) {
+                responseMap.put("price", new BigDecimal(oldPriceElements.first().text().replace("zł", "")));
+                responseMap.put("discountedPrice", new BigDecimal(newPriceElements.first().text().replace("zł", "")));
+            } else
+                responseMap.put("price", new BigDecimal(newPriceElements.first().text().replace("zł", "")));
+        */
         // Pobieranie zawartości węzłów
-        $data['title'] = trim($titleNodeList->item(0)->nodeValue);
-        $data['price'] = intval($priceNodeList->item(0)->nodeValue);
+        $data['title'] = trim($title);
+        if ($is_oldPrice) {
+            $data['price'] = intval(str_replace("zł", "", $oldPrice));
+            $data['discountedPrice'] = intval(str_replace("zł", "", $currentPrice));
+        } else
+            $data['price'] = intval(str_replace("zł", "", $currentPrice));
         $data['url'] = $link;
         $data['platform'] = array(
             "name" => 'StrefaKursów.pl',
@@ -61,11 +118,11 @@ if ($doc->loadHTMLFile($link)) {
             'version' => '1.0.0',
             'subscriptionMode' => false
         );
-        $data['author']['name'] = trim($authorNameNodeList->item(0)->nodeValue);
-        $data['author']['profession'] = trim($authorProfessionNodeList->item(0)->nodeValue);
-        $data['author']['url'] = trim($authorProfileURLNodeList->item(0)->nodeValue);
+        $data['author']['name'] = trim($authorName);
+        $data['author']['profession'] = trim($authorProfession);
+        $data['author']['url'] = trim($authorProfileURL);
     } else {
-        $data['error'] = "Nie znaleziono ceny kursu ({$priceNodeList->length}), tytułu ({$titleNodeList->length}), informacji o profesji ({$authorProfessionNodeList->length}), imienia i nazwiska autora ({$authorNameNodeList->length}) lub adresu URL do strony z profilem autora ({$authorProfileURLNodeList->length}).";
+        $data['error'] = "Nie znaleziono ceny kursu ({$currentPrice_len}), tytułu ({$title_len}), informacji o profesji ({$authorProfession_len}), imienia i nazwiska autora ({$authorName_len}) lub adresu URL do strony z profilem autora ({$authorProfileURL_len}).";
     }
 
     echo json_encode(array("success" => !isset($data['error']), "response" => $data), JSON_UNESCAPED_SLASHES);
