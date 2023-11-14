@@ -110,7 +110,6 @@ if ($doc->loadHTMLFile($link)) {
         } else
             $data['price'] = intval(str_replace("zł", "", $currentPrice));
         $data['url'] = $link;
-	$data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($link, ".html").'.jpg';
         $data['platform'] = array(
             "name" => 'StrefaKursów.pl',
             'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
