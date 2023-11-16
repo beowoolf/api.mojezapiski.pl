@@ -204,8 +204,8 @@ if ($doc->loadHTML($html)) {
         } else
             $data['price'] = intval(str_replace("zł", "", $currentPrice));
         $data['url'] = $link;
-        $data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
-        $data['categoryNames'] = tryReturnTags($xpath, $tagsXPath);
+	    $data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
+        $data['tags'] = tryReturnTags($xpath, $tagsXPath);
         $data['platform'] = array(
             "name" => 'StrefaKursów.pl',
             'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
@@ -228,7 +228,7 @@ if ($doc->loadHTML($html)) {
         $data['errorReason'] = str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", tryFindByXPath($xpath, $xpaths)))));
     }
 
-    echo json_encode(array("success" => !isset($data['error']), "object" => $data), JSON_UNESCAPED_SLASHES);
+    echo json_encode(array("success" => !isset($data['error']), "response" => $data), JSON_UNESCAPED_SLASHES);
 } else {
     echo json_encode(array("success" => false, "errorMsg" => "Błąd podczas wczytywania zawartości z adresu $link."), JSON_UNESCAPED_SLASHES);
 }
