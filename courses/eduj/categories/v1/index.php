@@ -1,5 +1,17 @@
 <?php
 
+if ($_SERVER['REQUEST_METHOD'] !== "POST") die(json_encode(array("success" => false, "errorMsg" => "Only POST as request method is accepted!")));
+
+$data_in = file_get_contents("php://input");
+if (!$data_in) die(json_encode(array("success" => false, "errorMsg" => "There is no data to decode!")));
+$request = json_decode($data_in, true);
+
+if (!isset($request["categoryIds"]) || !$request["categoryIds"]) die(json_encode(array("success" => false, "errorMsg" => "Setted field categoryIds is required!")));
+
+if (!is_array($request["categoryIds"])) die(json_encode(array("success" => false, "errorMsg" => "Setted field categoryIds should be an array!")));
+
+$categoryIds = $request["categoryIds"];
+
 header("Content-Type: application/json; charset=UTF-8");
 
 function getCategoryWithSubCategories($category) {
@@ -20,6 +32,14 @@ function getCategoryWithSubCategories($category) {
       for ($i=0; $i < $count_of_childrens; $i++)
         $category_list_to_return = array_merge($category_list_to_return, getCategoryWithSubCategories($category["children_data"][$i]));
     return $category_list_to_return;
+}
+
+function convert_categoryIds_to_category_name_list($categoryIds, $flat_category_list) {
+  $category_name_list = array();
+  foreach ($flat_category_list as $key => $value)
+    if (in_array($value["id"], $categoryIds))
+      $category_name_list[] = $value["name"];
+  return $category_name_list;
 }
 
 $curl = curl_init();
@@ -49,8 +69,6 @@ if ($err) {
 } else {
     $main_category = json_decode($response, true);
     $flat_category_list = getCategoryWithSubCategories($main_category);
-    $only_names_and_ids = array();
-    foreach ($flat_category_list as $key => $value)
-      $only_names_and_ids[] = array("name" => $value["name"], "id" => $value["id"]);
-    echo json_encode(array("success" => true, "response" => $only_names_and_ids), JSON_UNESCAPED_SLASHES);
+    $category_name_list_to_return = convert_categoryIds_to_category_name_list($categoryIds, $flat_category_list);
+    echo json_encode(array("success" => true, "list" => $category_name_list_to_return), JSON_UNESCAPED_SLASHES);
 }
