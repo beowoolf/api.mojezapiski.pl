@@ -52,5 +52,5 @@ if ($err) {
     $only_names_and_ids = array();
     foreach ($flat_category_list as $key => $value)
       $only_names_and_ids[] = array("name" => $value["name"], "id" => $value["id"]);
-    echo json_encode(array("success" => true, "list" => $only_names_and_ids), JSON_UNESCAPED_SLASHES);
+    echo json_encode(array("success" => true, "response" => $only_names_and_ids), JSON_UNESCAPED_SLASHES);
 }
