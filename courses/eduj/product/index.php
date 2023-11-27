@@ -44,9 +44,13 @@ if ($err) {
   echo json_encode(array("success" => false, "errorMsg" => "cURL Error #:" . $err));
 } else {
     $res_arr = json_decode($response, true);
+    if (isset($res_arr["message"]) && $res_arr["message"] == "Produkt nie istnieje. Zweryfikuj produkt i spróbuj ponownie.")
+        die(json_encode(array("success" => false, "object" => array("errorReason" => "usunięto"))));
     $out_arr = array(
         "title" => $res_arr["name"],
         "price" => $res_arr["price"],
+        //"url" => "https://eduj.pl/produkt/{$request["sku"]}",
+        //"sku" => "https://eduj.pl/produkt/{$res_arr["sku"]}",
         "url" => "https://eduj.pl/produkt/{$res_arr["sku"]}",
         "platform" => array(
             "name" => "Eduj",
