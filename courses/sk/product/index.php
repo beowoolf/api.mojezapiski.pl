@@ -17,6 +17,17 @@ libxml_use_internal_errors(true);
 // Tworzenie obiektu DOMDocument
 $doc = new DOMDocument();
 
+function getErrorReason($dom) {
+    $pageDivs = $dom->getElementsByTagName("div");
+    foreach ($pageDivs as $key => $value)
+        if ($value->hasAttribute("class") == true) {
+            $css_classes = explode(" ", $value->getAttribute("class"));
+            if (in_array("sciezki-kariery__sticky-menu", $css_classes))
+                return str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))));
+        }
+    return "";
+}
+
 function tryFindByXPath($xpath, $xpath_arr) {
     foreach ($xpath_arr as $key => $value) {
         $nodeList = $xpath->query($value);
@@ -91,71 +102,75 @@ function getProduct($dom, $link) {
     $product_arr = array();
     $og_image = tryReturnContentFromMetaByProperty($dom, 'og:image');
     $priceContainer = $dom->getElementById("price-container");
-    $priceContainerDivs = $priceContainer->getElementsByTagName("div");
-    foreach ($priceContainerDivs as $key => $value) {
-        if ($value->hasAttribute("class") == true) {
-            $css_classes = explode(" ", $value->getAttribute("class"));
-            if (in_array("desktop", $css_classes)) {
-                if (in_array("new", $css_classes)) {
-                    $product_arr["new_price"] = str_replace("zł", "", $value->nodeValue);
-                    /*echo("<pre>");
-                    var_dump($value->nodeValue);
-                    echo("</pre>");*/
-                } else if (in_array("old", $css_classes)) {
-                    $product_arr["old_price"] = str_replace("zł", "", $value->nodeValue);
-                    /*echo("<pre>");
-                    var_dump($value->nodeValue);
-                    echo("</pre>");*/
+    if ($priceContainer) {
+        $priceContainerDivs = $priceContainer->getElementsByTagName("div");
+        foreach ($priceContainerDivs as $key => $value) {
+            if ($value->hasAttribute("class") == true) {
+                $css_classes = explode(" ", $value->getAttribute("class"));
+                if (in_array("desktop", $css_classes)) {
+                    if (in_array("new", $css_classes)) {
+                        $product_arr["new_price"] = str_replace("zł", "", $value->nodeValue);
+                        /*echo("<pre>");
+                        var_dump($value->nodeValue);
+                        echo("</pre>");*/
+                    } else if (in_array("old", $css_classes)) {
+                        $product_arr["old_price"] = str_replace("zł", "", $value->nodeValue);
+                        /*echo("<pre>");
+                        var_dump($value->nodeValue);
+                        echo("</pre>");*/
+                    }
                 }
             }
         }
+        $productContainer = $priceContainer->parentNode->parentNode;
+    
+        $h1_tags_list= $productContainer->getElementsByTagName("h1");
+        //$product_arr["a"] = $a_tags_list->count();
+        if ($h1_tags_list->count() > 0)
+            $product_arr["title"] = $h1_tags_list->item(0)->nodeValue;
+        /*echo("<pre>");
+        var_dump($product_arr);
+        echo("</pre>");*/
+        if (isset($product_arr["old_price"])) {
+            $product_arr["price"] = $product_arr["old_price"];
+            $product_arr["discountedPrice"] = $product_arr["new_price"];
+            unset($product_arr["old_price"]);
+        } else
+            $product_arr["price"] = $product_arr["new_price"];
+        unset($product_arr["new_price"]);
+        $product_arr["url"] = $link;
+        $product_arr['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
+        $tagsContainer = $dom->getElementById("c-tag-navigation__content-wrapper");
+        $aTagsLinks = $tagsContainer->getElementsByTagName("a");
+        $categoryNames = array();
+        foreach ($aTagsLinks as $key => $value)
+            if (strpos($value->hasAttribute("href"), "/sciezki_kariery/") === false)
+                $categoryNames[] = $value->nodeValue;
+        $product_arr['categoryNames'] = $categoryNames;
+        $product_arr["platform"] = array(
+            "name" => 'StrefaKursów.pl',
+            'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
+            'url' => 'https://strefakursow.pl/',
+            'type' => 'sk',
+            'version' => '1.0.0',
+            'subscriptionMode' => false
+        );
+    
+        $a_tags_list = $productContainer->getElementsByTagName("a");
+        foreach ($a_tags_list as $key => $value)
+            if ($value->hasAttribute("href") && strpos($value->getAttribute("href"), "https://strefakursow.pl/product/from_author/") !== FALSE) {
+                $product_arr["author"]["url"] = $value->getAttribute("href");
+                /*echo("<pre>");
+                var_dump($value->childNodes);
+                echo("</pre>");*/
+                foreach ($value->childNodes as $k => $v)
+                    if ($v->nodeName == "p")
+                        $product_arr["author"]["profession"] = $v->nodeValue;
+                $product_arr["author"]["name"] = trim(str_replace($product_arr["author"]["profession"], "", $value->textContent));
+            }
+        if (!isset($product_arr["author"])) $product_arr["author"] = array("url" => $link, "profession" => "pisarz", "name" => "Gall Anonim");
+        else if ($product_arr["author"]["name"] == "Krzysztof Micielski") $product_arr["author"]["profession"] = "Grafik";
     }
-    $productContainer = $priceContainer->parentNode->parentNode;
-
-    $h1_tags_list= $productContainer->getElementsByTagName("h1");
-    //$product_arr["a"] = $a_tags_list->count();
-    if ($h1_tags_list->count() > 0)
-        $product_arr["title"] = $h1_tags_list->item(0)->nodeValue;
-    /*echo("<pre>");
-    var_dump($product_arr);
-    echo("</pre>");*/
-    if (isset($product_arr["old_price"])) {
-        $product_arr["price"] = $product_arr["old_price"];
-        $product_arr["discountedPrice"] = $product_arr["new_price"];
-        unset($product_arr["old_price"]);
-    } else
-        $product_arr["price"] = $product_arr["new_price"];
-    unset($product_arr["new_price"]);
-    $product_arr["url"] = $link;
-    $product_arr['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
-    $tagsContainer = $dom->getElementById("c-tag-navigation__content-wrapper");
-    $aTagsLinks = $tagsContainer->getElementsByTagName("a");
-    $categoryNames = array();
-    foreach ($aTagsLinks as $key => $value)
-        if (strpos($value->hasAttribute("href"), "/sciezki_kariery/") === false)
-            $categoryNames[] = $value->nodeValue;
-    $product_arr['categoryNames'] = $categoryNames;
-    $product_arr["platform"] = array(
-        "name" => 'StrefaKursów.pl',
-        'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
-        'url' => 'https://strefakursow.pl/',
-        'type' => 'sk',
-        'version' => '1.0.0',
-        'subscriptionMode' => false
-    );
-
-    $a_tags_list = $productContainer->getElementsByTagName("a");
-    foreach ($a_tags_list as $key => $value)
-        if ($value->hasAttribute("href") && strpos($value->getAttribute("href"), "https://strefakursow.pl/product/from_author/") !== FALSE) {
-            $product_arr["author"]["url"] = $value->getAttribute("href");
-            /*echo("<pre>");
-            var_dump($value->childNodes);
-            echo("</pre>");*/
-            foreach ($value->childNodes as $k => $v)
-                if ($v->nodeName == "p")
-                    $product_arr["author"]["profession"] = $v->nodeValue;
-            $product_arr["author"]["name"] = trim(str_replace($product_arr["author"]["profession"], "", $value->textContent));
-        }
     return $product_arr;
 }
 
@@ -165,6 +180,7 @@ function getPage($link) {
     curl_setopt_array($curl, [
       CURLOPT_URL => $link,
       CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_FOLLOWLOCATION => 1,
       CURLOPT_ENCODING => "",
       CURLOPT_MAXREDIRS => 10,
       CURLOPT_TIMEOUT => 30,
@@ -177,21 +193,23 @@ function getPage($link) {
     $response = curl_exec($curl);
     $err = curl_error($curl);
     
+    $effective_url = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
     curl_close($curl);
     
     if ($err) {
       error_log("cURL Error #:" . $err);
       return "";
     } else {
-      return $response;
+      return array("response" => $response, "effective_url" => $effective_url);
     }
 }
 
-$html = getPage($link);
+$page = getPage($link);
+$html = $page["response"];
 
-file_put_contents("course.html", $html);
+//file_put_contents("course.html", $html);
 
-if (strlen($html) === 0) die(json_encode(array("success" => false, "errorMsg" => "Pusty plik HTML")));
+if (strlen($html) === 0) die(json_encode(array("success" => false, "object" => array("errorReason" => "Pusty plik HTML"))));
 
 // Wczytywanie pliku https://strefakursow.pl/kursy/rozwoj_osobisty/kurs_asana_od_podstaw_-_zarzadzanie_projektami.html
 if ($doc->loadHTML($html)) {
@@ -295,13 +313,15 @@ if ($doc->loadHTML($html)) {
         $product = getProduct($doc, $link);
         if (count(array_keys($product)) == 0) {
           $data['error'] = "Nie znaleziono ceny kursu ({$currentPrice_len}), tytułu ({$title_len}), informacji o profesji ({$authorProfession_len}), imienia i nazwiska autora ({$authorName_len}) lub adresu URL do strony z profilem autora ({$authorProfileURL_len}).";
-          $xpaths = array(
+          /*$xpaths = array(
               '/html/body/div[13]/div[2]/div[2]/div[4]/div',
-              '/html/body/div[12]/div[2]/div[2]/div[4]/div',
-              '/html/body/div[13]/div[2]/div[2]/div[3]/div',
+              '/html/body/div[12]/div[2]/div[2]/div[4]/div',// /html/body/div[13]/div[2]/div[2]/div[4]/div
+              '/html/body/div[13]/div[2]/div[2]/div[3]/div',// /html/body/div[13]/div[2]/div[2]/div[4]/div
               '/html/body/div[12]/div[2]/div[2]/div[3]/div'
           );
-          $data['errorReason'] = str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", tryFindByXPath($xpath, $xpaths)))));
+          $data['errorReason'] = str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", tryFindByXPath($xpath, $xpaths)))));*/
+          $data['errorReason'] = getErrorReason($doc);
+          if ($data['errorReason'] === "" && $link != $page["effective_url"]) die(json_encode(array("success" => false, "object" => array("errorReason" => "Przekierowanie do strony: " . $page["effective_url"]))));
         } else $data = $product;
     }
 
