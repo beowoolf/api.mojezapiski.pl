@@ -129,4 +129,5 @@ if ($status_code === 200 && $response !== false) {
 
 // Zamknij połączenie z bazą SQLite
 $db->close();
+
 ?>

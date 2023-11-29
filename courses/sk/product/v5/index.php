@@ -98,15 +98,6 @@ function tryReturnTags($xpath, $xpath_arr) {
     return $tags;
 }
 
-function getMainCategoryName($dom, $link) { // /html/body/div[7]/div[1]/div/div/div[1]
-    $dirname = str_replace("https://strefakursow.pl", "", pathinfo($link)["dirname"]).".html";
-    $all_links = $dom->getElementsByTagName("a");
-    foreach ($all_links as $key => $value)
-        if ($value->hasAttribute("class") && $value->getAttribute("class") == "menu-navigation__container--box js-category-menu-box" && $value->hasAttribute("href") && $value->getAttribute("href") == $dirname)
-            return str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))));
-    return "";
-}
-
 function getProduct($dom, $link) {
     $product_arr = array();
     $og_image = tryReturnContentFromMetaByProperty($dom, 'og:image');
@@ -155,11 +146,7 @@ function getProduct($dom, $link) {
         foreach ($aTagsLinks as $key => $value)
             if (strpos($value->hasAttribute("href"), "/sciezki_kariery/") === false)
                 $categoryNames[] = $value->nodeValue;
-        $main_category_name = getMainCategoryName($dom, $link);
-        if ($main_category_name != "")
-            $product_arr['categoryNames'] = array_merge(array($main_category_name), $categoryNames);
-        else
-            $product_arr['categoryNames'] = array_merge($categoryNames);
+        $product_arr['categoryNames'] = $categoryNames;
         $product_arr["platform"] = array(
             "name" => 'StrefaKursów.pl',
             'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
@@ -310,12 +297,7 @@ if ($doc->loadHTML($html)) {
             $data['price'] = intval(str_replace("zł", "", $currentPrice));
         $data['url'] = $link;
         $data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
-        $main_category_name = getMainCategoryName($doc, $link);
-        $categoryNames = tryReturnTags($xpath, $tagsXPath);
-        if ($main_category_name != "")
-            $data['categoryNames'] = array_merge(array($main_category_name), $categoryNames);
-        else
-            $data['categoryNames'] = array_merge($categoryNames);
+        $data['categoryNames'] = tryReturnTags($xpath, $tagsXPath);
         $data['platform'] = array(
             "name" => 'StrefaKursów.pl',
             'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
