@@ -41,9 +41,9 @@ if ($response === false) {
             $arr = json_decode($text, true);
             $new_arr = array(
                 "joboffersAutocompleteConfig" => $arr["/joboffers/autocomplete/config?salaryCurrency=PLN&a;salaryPeriod=month&a;region=pl"],
-                "posting" => $arr["/posting?limited=6&a;salaryCurrency=PLN&a;salaryPeriod=month&a;region=pl"],
+                //"posting" => $arr["/posting?limited=6&a;salaryCurrency=PLN&a;salaryPeriod=month&a;region=pl"],
                 "joboffersOfTheDay" => $arr["/joboffers/oftheday?salaryCurrency=PLN&a;salaryPeriod=month&a;region=pl"],
-                "offersCategorized" => $arr["OFFERS_CATEGORIZED"],
+                //"offersCategorized" => $arr["OFFERS_CATEGORIZED"],
                 "offersOfTheDay" => $arr["OFFERS_OF_THE_DAY"]
             );
             unset($arr["USER_COUNTRY"]);//X
