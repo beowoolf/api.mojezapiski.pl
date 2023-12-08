@@ -17,6 +17,13 @@ libxml_use_internal_errors(true);
 // Tworzenie obiektu DOMDocument
 $doc = new DOMDocument();
 
+function tryReturnThumbnail($html) {
+    if (preg_match('/\/gmc2\/.*\.png/', $html, $matches) === 1)
+        if (count($matches) > 0)
+            return "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($matches[0],".png").".jpg";
+    return "";
+}
+
 function getErrorReason($dom) {
     $pageDivs = $dom->getElementsByTagName("div");
     foreach ($pageDivs as $key => $value)
@@ -107,7 +114,7 @@ function getMainCategoryName($dom, $link) { // /html/body/div[7]/div[1]/div/div/
     return "";
 }
 
-function getProduct($dom, $link) {
+function getProduct($dom, $link, $html) {
     $product_arr = array();
     $og_image = tryReturnContentFromMetaByProperty($dom, 'og:image');
     $priceContainer = $dom->getElementById("price-container");
@@ -149,6 +156,8 @@ function getProduct($dom, $link) {
         unset($product_arr["new_price"]);
         $product_arr["url"] = $link;
         $product_arr['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
+        $product_arr['thumbnail'] = "$og_image";
+        $product_arr['thumbnail'] = tryReturnThumbnail($html);
         $tagsContainer = $dom->getElementById("c-tag-navigation__content-wrapper");
         $aTagsLinks = $tagsContainer->getElementsByTagName("a");
         $categoryNames = array();
@@ -310,6 +319,8 @@ if ($doc->loadHTML($html)) {
             $data['price'] = intval(str_replace("zł", "", $currentPrice));
         $data['url'] = $link;
         $data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
+        $data['thumbnail'] = "$og_image";
+        $data['thumbnail'] = tryReturnThumbnail($html);
         $main_category_name = getMainCategoryName($doc, $link);
         $categoryNames = tryReturnTags($xpath, $tagsXPath);
         if ($main_category_name != "")
@@ -328,7 +339,7 @@ if ($doc->loadHTML($html)) {
         $data['author']['profession'] = trim($authorProfession);
         $data['author']['url'] = trim($authorProfileURL);
     } else {
-        $product = getProduct($doc, $link);
+        $product = getProduct($doc, $link, $html);
         if (count(array_keys($product)) == 0) {
           $data['error'] = "Nie znaleziono ceny kursu ({$currentPrice_len}), tytułu ({$title_len}), informacji o profesji ({$authorProfession_len}), imienia i nazwiska autora ({$authorName_len}) lub adresu URL do strony z profilem autora ({$authorProfileURL_len}).";
           /*$xpaths = array(
