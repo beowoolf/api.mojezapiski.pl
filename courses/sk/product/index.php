@@ -162,7 +162,7 @@ function getProduct($dom, $link, $html) {
         $aTagsLinks = $tagsContainer->getElementsByTagName("a");
         $categoryNames = array();
         foreach ($aTagsLinks as $key => $value)
-            if (strpos($value->hasAttribute("href"), "/sciezki_kariery/") === false)
+            if ($value->hasAttribute("href") && strpos($value->getAttribute("href"), "/sciezki_kariery/") === false)
                 $categoryNames[] = $value->nodeValue;
         $main_category_name = getMainCategoryName($dom, $link);
         if ($main_category_name != "")
