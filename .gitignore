@@ -9,3 +9,4 @@ my-car/admin_password.php
 github/pat.php
 *.db
 *.sqlite3
+.vscode
