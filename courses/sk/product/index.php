@@ -24,15 +24,38 @@ function tryReturnThumbnail($html) {
     return "";
 }
 
-function getErrorReason($dom) {
+function getByClassName($dom, $className) {
     $pageDivs = $dom->getElementsByTagName("div");
     foreach ($pageDivs as $key => $value)
         if ($value->hasAttribute("class") == true) {
             $css_classes = explode(" ", $value->getAttribute("class"));
-            if (in_array("sciezki-kariery__sticky-menu", $css_classes))
-                return str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))));
+            if (in_array($className, $css_classes))
+                return str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",trim(str_replace("\r","", str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))))))));
         }
     return "";
+}
+
+function getErrorReason($dom) {
+    return getByClassName($dom, "sciezki-kariery__sticky-menu");
+}
+
+function getProductDesctiption($dom) {
+    return getByClassName($dom, "b-product-description__filling");
+}
+
+function getCourseDescription($dom) {
+    $input = getProductDesctiption($dom);
+    // Znajdź indeks pierwszego wystąpienia frazy "ZOBACZ WIĘCEJ Kup w pakiecie i oszczędź"
+    $index = strpos($input, "ZOBACZ WIĘCEJ Kup w pakiecie i oszczędź");
+    
+    // Jeśli fraza została znaleziona
+    if ($index !== false) {
+        // Zwróć fragment tekstu przed frazą
+        return trim(substr($input, 0, $index));
+    } else {
+        // Jeśli fraza nie została znaleziona, zwróć cały tekst
+        return $input;
+    }
 }
 
 function tryFindByXPath($xpath, $xpath_arr) {
@@ -154,6 +177,7 @@ function getProduct($dom, $link, $html) {
         } else
             $product_arr["price"] = $product_arr["new_price"];
         unset($product_arr["new_price"]);
+        $product_arr['description'] = getCourseDescription($dom);
         $product_arr["url"] = $link;
         $product_arr['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
         $product_arr['thumbnail'] = "$og_image";
@@ -338,6 +362,7 @@ if ($doc->loadHTML($html)) {
         $data['author']['name'] = trim($authorName);
         $data['author']['profession'] = trim($authorProfession);
         $data['author']['url'] = trim($authorProfileURL);
+        $data['description'] = getCourseDescription($doc);
     } else {
         $product = getProduct($doc, $link, $html);
         if (count(array_keys($product)) == 0) {
