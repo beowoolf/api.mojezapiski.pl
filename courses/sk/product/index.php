@@ -1,6 +1,6 @@
 <?php
 
-if ($_SERVER['REQUEST_METHOD'] !== "POST") die(json_encode(array("success" => false, "errorMsg" => "Only POST as request method is accepted!")));
+if ($_SERVER["REQUEST_METHOD"] !== "POST") die(json_encode(array("success" => false, "errorMsg" => "Only POST as request method is accepted!")));
 
 $data_in = file_get_contents("php://input");
 if (!$data_in) die(json_encode(array("success" => false, "errorMsg" => "There is no data to decode!")));
@@ -10,7 +10,7 @@ if (!isset($request["url"]) || !$request["url"]) die(json_encode(array("success"
 
 header("Content-Type: application/json; charset=UTF-8");
 // Wyłączanie raportowania błędów XML
-$link = $request["url"];//'https://strefakursow.pl/kursy/rozwoj_osobisty/kurs_asana_od_podstaw_-_zarzadzanie_projektami.html';
+$url = $request["url"];//"https://strefakursow.pl/kursy/rozwoj_osobisty/kurs_asana_od_podstaw_-_zarzadzanie_projektami.html";
 
 libxml_use_internal_errors(true);
 
@@ -18,7 +18,7 @@ libxml_use_internal_errors(true);
 $doc = new DOMDocument();
 
 function tryReturnThumbnail($html) {
-    if (preg_match('/\/gmc2\/.*\.png/', $html, $matches) === 1)
+    if (preg_match("/\/gmc2\/.*\.png/", $html, $matches) === 1)
         if (count($matches) > 0)
             return "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($matches[0],".png").".jpg";
     return "";
@@ -81,10 +81,10 @@ function tryReturnDOMNode($xpath, $xpath_arr) {
 }
 
 function tryReturnContentFromMetaByProperty($dom, $propertyValue) {
-    $metaTags = $dom->getElementsByTagName('meta');
+    $metaTags = $dom->getElementsByTagName("meta");
     foreach ($metaTags as $meta)
-        if ($meta->getAttribute('property')  === $propertyValue)
-            return $meta->getAttribute('content');
+        if ($meta->getAttribute("property")  === $propertyValue)
+            return $meta->getAttribute("content");
     return "";
 }
 
@@ -128,8 +128,8 @@ function tryReturnTags($xpath, $xpath_arr) {
     return $tags;
 }
 
-function getMainCategoryName($dom, $link) { // /html/body/div[7]/div[1]/div/div/div[1]
-    $dirname = str_replace("https://strefakursow.pl", "", pathinfo($link)["dirname"]).".html";
+function getMainCategoryName($dom, $input_link) { // /html/body/div[7]/div[1]/div/div/div[1]
+    $dirname = str_replace("https://strefakursow.pl", "", pathinfo($input_link)["dirname"]).".html";
     $all_links = $dom->getElementsByTagName("a");
     foreach ($all_links as $key => $value)
         if ($value->hasAttribute("class") && $value->getAttribute("class") == "menu-navigation__container--box js-category-menu-box" && $value->hasAttribute("href") && $value->getAttribute("href") == $dirname)
@@ -137,9 +137,9 @@ function getMainCategoryName($dom, $link) { // /html/body/div[7]/div[1]/div/div/
     return "";
 }
 
-function getProduct($dom, $link, $html) {
+function getProduct($dom, $input_link, $html) {
     $product_arr = array();
-    $og_image = tryReturnContentFromMetaByProperty($dom, 'og:image');
+    $og_image = tryReturnContentFromMetaByProperty($dom, "og:image");
     $priceContainer = $dom->getElementById("price-container");
     if ($priceContainer) {
         $priceContainerDivs = $priceContainer->getElementsByTagName("div");
@@ -177,29 +177,29 @@ function getProduct($dom, $link, $html) {
         } else
             $product_arr["price"] = $product_arr["new_price"];
         unset($product_arr["new_price"]);
-        $product_arr['description'] = getCourseDescription($dom);
-        $product_arr["url"] = $link;
-        $product_arr['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
-        $product_arr['thumbnail'] = "$og_image";
-        $product_arr['thumbnail'] = tryReturnThumbnail($html);
+        $product_arr["description"] = getCourseDescription($dom);
+        $product_arr["url"] = $input_link;
+        $product_arr["thumbnail"] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").".jpg";
+        $product_arr["thumbnail"] = "$og_image";
+        $product_arr["thumbnail"] = tryReturnThumbnail($html);
         $tagsContainer = $dom->getElementById("c-tag-navigation__content-wrapper");
         $aTagsLinks = $tagsContainer->getElementsByTagName("a");
         $categoryNames = array();
         foreach ($aTagsLinks as $key => $value)
             if ($value->hasAttribute("href") && strpos($value->getAttribute("href"), "/sciezki_kariery/") === false)
                 $categoryNames[] = $value->nodeValue;
-        $main_category_name = getMainCategoryName($dom, $link);
+        $main_category_name = getMainCategoryName($dom, $input_link);
         if ($main_category_name != "")
-            $product_arr['categoryNames'] = array_merge(array($main_category_name), $categoryNames);
+            $product_arr["categoryNames"] = array_merge(array($main_category_name), $categoryNames);
         else
-            $product_arr['categoryNames'] = array_merge($categoryNames);
+            $product_arr["categoryNames"] = array_merge($categoryNames);
         $product_arr["platform"] = array(
-            "name" => 'StrefaKursów.pl',
-            'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
-            'url' => 'https://strefakursow.pl/',
-            'type' => 'sk',
-            'version' => '1.0.0',
-            'subscriptionMode' => false
+            "name" => "StrefaKursów.pl",
+            "logo" => "https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg",
+            "url" => "https://strefakursow.pl/",
+            "type" => "sk",
+            "version" => "1.0.0",
+            "subscriptionMode" => false
         );
     
         $a_tags_list = $productContainer->getElementsByTagName("a");
@@ -214,17 +214,17 @@ function getProduct($dom, $link, $html) {
                         $product_arr["author"]["profession"] = $v->nodeValue;
                 $product_arr["author"]["name"] = trim(str_replace($product_arr["author"]["profession"], "", $value->textContent));
             }
-        if (!isset($product_arr["author"])) $product_arr["author"] = array("url" => $link, "profession" => "pisarz", "name" => "Gall Anonim");
+        if (!isset($product_arr["author"])) $product_arr["author"] = array("url" => $input_link, "profession" => "pisarz", "name" => "Gall Anonim");
         else if ($product_arr["author"]["name"] == "Krzysztof Micielski") $product_arr["author"]["profession"] = "Grafik";
     }
     return $product_arr;
 }
 
-function getPage($link) {
+function getPage($input_link) {
     $curl = curl_init();
 
     curl_setopt_array($curl, [
-      CURLOPT_URL => $link,
+      CURLOPT_URL => $input_link,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_FOLLOWLOCATION => 1,
       CURLOPT_ENCODING => "",
@@ -250,8 +250,9 @@ function getPage($link) {
     }
 }
 
-$page = getPage($link);
+$page = getPage($url);
 $html = $page["response"];
+$effective_url = $page["effective_url"];
 
 //file_put_contents("course.html", $html);
 
@@ -267,28 +268,28 @@ if ($doc->loadHTML($html)) {
         '//*[@id="price-container"]/div[1]/div/div[1]',
         '//*[@id="price-container"]/div[1]/div/div[2]/text()'
     );
-    //$parsedXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
-    //$priceXPath = '//*[@id="price-container"]/div[1]/div/div[1]';
-    //$onlyPriceXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
-    //$newPriceXPath = '//*[@id="price-container"]/div[1]/div/div[2]/text()';
+    //$parsedXPath = "//*[@id="price-container"]/div[1]/div/div[2]/text()";
+    //$priceXPath = "//*[@id="price-container"]/div[1]/div/div[1]";
+    //$onlyPriceXPath = "//*[@id="price-container"]/div[1]/div/div[2]/text()";
+    //$newPriceXPath = "//*[@id="price-container"]/div[1]/div/div[2]/text()";
     $oldPriceXPath = array(
         '//*[@id="price-container"]/div[1]/div/div[3]'
     );
     $titleXPath = array(
-        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[2]/h1',
-        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[2]/h1'
+        "/html/body/div[13]/div[2]/div[2]/div[1]/div/div[2]/h1",
+        "/html/body/div[12]/div[2]/div[2]/div[1]/div/div[2]/h1"
     );
     $authorProfessionXPath = array(
-        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p',
-        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p'
+        "/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p",
+        "/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/p"
     );
     $authorNameXPath = array(
-        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()',
-        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()'
+        "/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()",
+        "/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/text()"
     );
     $authorProfileURLXPath = array(
-        '/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href',
-        '/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href'
+        "/html/body/div[13]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href",
+        "/html/body/div[12]/div[2]/div[2]/div[1]/div/div[1]/div[1]/div/a/@href"
     );
 
     // Wyszukiwanie ceny
@@ -326,7 +327,7 @@ if ($doc->loadHTML($html)) {
 
     // Sprawdzanie, czy znaleziono węzły
     if ($is_currentPrice && $is_title && $is_authorProfession && $is_authorName && $is_authorProfileURL) {
-        $og_image = tryReturnContentFromMetaByProperty($doc, 'og:image');
+        $og_image = tryReturnContentFromMetaByProperty($doc, "og:image");
         /*
             if (isOldPrice) {
                 responseMap.put("price", new BigDecimal(oldPriceElements.first().text().replace("zł", "")));
@@ -335,53 +336,53 @@ if ($doc->loadHTML($html)) {
                 responseMap.put("price", new BigDecimal(newPriceElements.first().text().replace("zł", "")));
         */
         // Pobieranie zawartości węzłów
-        $data['title'] = trim($title);
+        $data["title"] = trim($title);
         if ($is_oldPrice) {
-            $data['price'] = intval(str_replace("zł", "", $oldPrice));
-            $data['discountedPrice'] = intval(str_replace("zł", "", $currentPrice));
+            $data["price"] = intval(str_replace("zł", "", $oldPrice));
+            $data["discountedPrice"] = intval(str_replace("zł", "", $currentPrice));
         } else
-            $data['price'] = intval(str_replace("zł", "", $currentPrice));
-        $data['url'] = $link;
-        $data['thumbnail'] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").'.jpg';
-        $data['thumbnail'] = "$og_image";
-        $data['thumbnail'] = tryReturnThumbnail($html);
-        $main_category_name = getMainCategoryName($doc, $link);
+            $data["price"] = intval(str_replace("zł", "", $currentPrice));
+        $data["url"] = $effective_url;
+        $data["thumbnail"] = "https://strefafilmy.s3.amazonaws.com/product_picture/shop/box/".basename($og_image, ".png").".jpg";
+        $data["thumbnail"] = "$og_image";
+        $data["thumbnail"] = tryReturnThumbnail($html);
+        $main_category_name = getMainCategoryName($doc, $effective_url);
         $categoryNames = tryReturnTags($xpath, $tagsXPath);
         if ($main_category_name != "")
-            $data['categoryNames'] = array_merge(array($main_category_name), $categoryNames);
+            $data["categoryNames"] = array_merge(array($main_category_name), $categoryNames);
         else
-            $data['categoryNames'] = array_merge($categoryNames);
-        $data['platform'] = array(
-            "name" => 'StrefaKursów.pl',
-            'logo' => 'https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg',
-            'url' => 'https://strefakursow.pl/',
-            'type' => 'sk',
-            'version' => '1.0.0',
-            'subscriptionMode' => false
+            $data["categoryNames"] = array_merge($categoryNames);
+        $data["platform"] = array(
+            "name" => "StrefaKursów.pl",
+            "logo" => "https://strefakursow.pl/redesign/assets/images/logo/default-logo-desktop.svg",
+            "url" => "https://strefakursow.pl/",
+            "type" => "sk",
+            "version" => "1.0.0",
+            "subscriptionMode" => false
         );
-        $data['author']['name'] = trim($authorName);
-        $data['author']['profession'] = trim($authorProfession);
-        $data['author']['url'] = trim($authorProfileURL);
-        $data['description'] = getCourseDescription($doc);
+        $data["author"]["name"] = trim($authorName);
+        $data["author"]["profession"] = trim($authorProfession);
+        $data["author"]["url"] = trim($authorProfileURL);
+        $data["description"] = getCourseDescription($doc);
     } else {
-        $product = getProduct($doc, $link, $html);
+        $product = getProduct($doc, $effective_url, $html);
         if (count(array_keys($product)) == 0) {
-          $data['error'] = "Nie znaleziono ceny kursu ({$currentPrice_len}), tytułu ({$title_len}), informacji o profesji ({$authorProfession_len}), imienia i nazwiska autora ({$authorName_len}) lub adresu URL do strony z profilem autora ({$authorProfileURL_len}).";
+          $data["error"] = "Nie znaleziono ceny kursu ({$currentPrice_len}), tytułu ({$title_len}), informacji o profesji ({$authorProfession_len}), imienia i nazwiska autora ({$authorName_len}) lub adresu URL do strony z profilem autora ({$authorProfileURL_len}).";
           /*$xpaths = array(
-              '/html/body/div[13]/div[2]/div[2]/div[4]/div',
-              '/html/body/div[12]/div[2]/div[2]/div[4]/div',// /html/body/div[13]/div[2]/div[2]/div[4]/div
-              '/html/body/div[13]/div[2]/div[2]/div[3]/div',// /html/body/div[13]/div[2]/div[2]/div[4]/div
-              '/html/body/div[12]/div[2]/div[2]/div[3]/div'
+              "/html/body/div[13]/div[2]/div[2]/div[4]/div",
+              "/html/body/div[12]/div[2]/div[2]/div[4]/div",// /html/body/div[13]/div[2]/div[2]/div[4]/div
+              "/html/body/div[13]/div[2]/div[2]/div[3]/div",// /html/body/div[13]/div[2]/div[2]/div[4]/div
+              "/html/body/div[12]/div[2]/div[2]/div[3]/div"
           );
-          $data['errorReason'] = str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", tryFindByXPath($xpath, $xpaths)))));*/
-          $data['errorReason'] = getErrorReason($doc);
-          if ($data['errorReason'] === "" && $link != $page["effective_url"]) die(json_encode(array("success" => false, "object" => array("errorReason" => "Przekierowanie do strony: " . $page["effective_url"]))));
+          $data["errorReason"] = str_replace("  "," ",trim(str_replace("\n"," ", str_replace("  ", "", tryFindByXPath($xpath, $xpaths)))));*/
+          $data["errorReason"] = getErrorReason($doc);
+          if ($data["errorReason"] === "" && $url != $page["effective_url"]) die(json_encode(array("success" => false, "object" => array("errorReason" => "Przekierowanie do strony: " . $page["effective_url"]))));
         } else $data = $product;
     }
 
-    echo json_encode(array("success" => !isset($data['error']), "object" => $data), JSON_UNESCAPED_SLASHES);
+    echo json_encode(array("success" => !isset($data["error"]), "object" => $data), JSON_UNESCAPED_SLASHES);
 } else {
-    echo json_encode(array("success" => false, "errorMsg" => "Błąd podczas wczytywania zawartości z adresu $link."), JSON_UNESCAPED_SLASHES);
+    echo json_encode(array("success" => false, "errorMsg" => "Błąd podczas wczytywania zawartości z adresu $url."), JSON_UNESCAPED_SLASHES);
 }
 
 // Wyłączanie obsługi błędów XML
