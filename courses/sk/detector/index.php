@@ -5,7 +5,7 @@ header("Content-Type: application/json; charset=UTF-8");
 function fetchSitemapLink() {
     // Ustawienia zapytania cURL
     $url = 'https://strefakursow.pl/sitemap.xml';
-    $cacheTable = 'cache_strefakursow.db'; // Nazwa pliku bazy SQLite
+    $cacheTable = __DIR__.'/../cache_strefakursow.db'; // Nazwa pliku bazy SQLite
     $strefakursowTable = 'strefakursow';
     
     // Inicjalizacja bazy SQLite
