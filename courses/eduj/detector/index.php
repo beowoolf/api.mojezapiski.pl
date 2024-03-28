@@ -220,7 +220,7 @@ function mapCourseItems($response) {
 function getLinksFromSitemap() {
     // Ustawienia zapytania cURL
     $url = 'https://eduj.pl/sitemap.xml';
-    $cacheTable = 'cache.db'; // Nazwa pliku bazy SQLite
+    $cacheTable = __DIR__.'/../cache.db'; // Nazwa pliku bazy SQLite
     $edujTable = 'eduj';
     
     // Inicjalizacja bazy SQLite
@@ -284,10 +284,10 @@ function getLinksFromSitemap() {
     
                         error_log("Pobrano i zaktualizowano adresy z sitemap.xml w bazie SQLite.");
                     } else {
-                        error_log("Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
+                        error_log("1 Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
                     }
                 } else {
-                    error_log("Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
+                    error_log("2 Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
                 }
     
                 // Zwróć adresy URL zapisane w bazie SQLite, które zawierają "/produkt/"
@@ -354,10 +354,21 @@ function extractLinksFromResponse($mapped_courses_list) {
     return $links_list;
 }
 
+function dump_array_to_file($json_name, $array) {
+    file_put_contents("$json_name.json", json_encode($array, JSON_UNESCAPED_SLASHES));
+}
+
 function getMissedLinks($mapped_courses_list) {
     $links_from_sitemap = getLinksFromSitemap();
+    //dump_array_to_file("links_from_sitemap", $links_from_sitemap);
     $links_from_graphql = extractLinksFromResponse($mapped_courses_list);
-    $all_unique_links = array_values(array_unique(array_merge($links_from_sitemap, $links_from_graphql)));
+    //dump_array_to_file("links_from_graphql", $links_from_graphql);
+    $links_merged_list = array_merge($links_from_sitemap, $links_from_graphql);
+    //dump_array_to_file("links_merged_list", $links_merged_list);
+    $links_unique_list = array_unique($links_merged_list);
+    //dump_array_to_file("links_unique_list", $links_unique_list);
+    $all_unique_links = array_values($links_unique_list);
+    //dump_array_to_file("all_unique_links", $all_unique_links);
     return array_values(array_diff($all_unique_links, $links_from_graphql));
 }
 
