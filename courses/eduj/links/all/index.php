@@ -1,5 +1,7 @@
 <?php
 
+header("Content-Type: application/json; charset=UTF-8");
+
 function prepareCurlHandle($url) {
     $ch = curl_init();
 
