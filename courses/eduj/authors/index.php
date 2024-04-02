@@ -1,5 +1,7 @@
 <?php
 
+header("Content-Type: application/json; charset=UTF-8");
+
 $curl = curl_init();
 
 curl_setopt_array($curl, [
