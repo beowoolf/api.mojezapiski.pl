@@ -66,10 +66,10 @@ if ($status_code === 200 && $response !== false) {
 
                     error_log("Pobrano i zaktualizowano adresy z sitemap.xml w bazie SQLite.");
                 } else {
-                    error_log("Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
+                    error_log("1 Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
                 }
             } else {
-                error_log("Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
+                error_log("2 Sitemap.xml nie zawiera nowych adresów URL zawierających '/produkt/'.");
             }
 
             // Zwróć adresy URL zapisane w bazie SQLite, które zawierają "/produkt/"
