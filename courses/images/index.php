@@ -1,5 +1,7 @@
 <?php
 
+header("Content-Type: application/json; charset=UTF-8");
+
 // Funkcja do pobierania obrazka z określonego URL
 function fetch_image($url) {
     // Inicjalizacja sesji cURL
@@ -81,6 +83,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Konwersja obrazka do formatu webp
                 $webp_image = imagecreatefromstring($image_content);
 
+                if ($webp_image == false)
+                    die(json_encode(array('success' => false, 'message' => 'Błąd podczas tworzenia obrazka')));
+
                 // Utworzenie nazwy pliku z nowym rozszerzeniem
                 $new_filename = $image_id . '.webp';
 
@@ -93,13 +98,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $destination_path = $images_dir . '/' . $new_filename;
 
                 // Zapis przekonwertowanego obrazka do pliku
-                imagewebp($webp_image, $destination_path);
+                $is_imagewebp_saved = imagewebp($webp_image, $destination_path);
+
+                if ($is_imagewebp_saved != true) // Zwracanie odpowiedzi sukcesu
+                    echo json_encode(array('success' => false, 'message' => 'Obrazek niew został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
 
                 // Zwalnianie zasobów
-                imagedestroy($webp_image);
+                $is_image_destroyed = imagedestroy($webp_image);
 
-                // Zwracanie odpowiedzi sukcesu
-                echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
+                if ($is_image_destroyed != true)
+                    error_log("Nie udało się niszczenie informacji o obrazku w pamięci");
+
+                if ($is_imagewebp_saved == true) // Zwracanie odpowiedzi sukcesu
+                    echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
             } else {
                 // Zwracanie odpowiedzi, że nie udało się pobrać obrazka
                 echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka'));
