@@ -37,7 +37,7 @@ function createDirIfNotExist($path) {
 // Sprawdzanie, czy otrzymano dane metodą POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Pobieranie danych JSON z ciała żądania
-    $json_data = file_get_contents("php://input");
+    $json_data = @file_get_contents("php://input");
 
     // Sprawdzanie, czy otrzymano jakiekolwiek dane
     if (!empty($json_data)) {
@@ -50,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $image_url = $data['url'];
             $image_id = $data['id'];
 
-            $image_content = file_get_contents($image_url);
+            $image_content = @file_get_contents($image_url);
             if ($image_content === false)
-                $image_content = file_get_contents(preg_replace('/\.(jpg)$/i', '.png', $image_url));
+                $image_content = @file_get_contents(preg_replace('/\.(jpg)$/i', '.png', $image_url));
             /*
             // Pobieranie rozszerzenia pliku
             $extension = pathinfo($image_url, PATHINFO_EXTENSION);
@@ -81,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Sprawdzenie, czy udało się pobrać obrazek
             if ($image_content !== false) {
                 // Konwersja obrazka do formatu webp
-                $webp_image = imagecreatefromstring($image_content);
+                $webp_image = @imagecreatefromstring($image_content);
 
                 if ($webp_image == false)
                     die(json_encode(array('success' => false, 'message' => 'Błąd podczas tworzenia obrazka')));
@@ -98,13 +98,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $destination_path = $images_dir . '/' . $new_filename;
 
                 // Zapis przekonwertowanego obrazka do pliku
-                $is_imagewebp_saved = imagewebp($webp_image, $destination_path);
+                $is_imagewebp_saved = @imagewebp($webp_image, $destination_path);
 
                 if ($is_imagewebp_saved != true) // Zwracanie odpowiedzi sukcesu
                     echo json_encode(array('success' => false, 'message' => 'Obrazek niew został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
 
                 // Zwalnianie zasobów
-                $is_image_destroyed = imagedestroy($webp_image);
+                $is_image_destroyed = @imagedestroy($webp_image);
 
                 if ($is_image_destroyed != true)
                     error_log("Nie udało się niszczenie informacji o obrazku w pamięci");
