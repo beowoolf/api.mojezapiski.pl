@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
             } else {
                 // Zwracanie odpowiedzi, że nie udało się pobrać obrazka
-                echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka'));
+                echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka: ' . $image_url));
             }
         } else {
             // Zwracanie odpowiedzi w przypadku braku wymaganych danych
