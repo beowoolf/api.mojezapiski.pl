@@ -166,7 +166,7 @@ function getProduct($dom, $input_link, $html) {
         $h1_tags_list= $productContainer->getElementsByTagName("h1");
         //$product_arr["a"] = $a_tags_list->count();
         if ($h1_tags_list->count() > 0)
-            $product_arr["title"] = $h1_tags_list->item(0)->nodeValue;
+            $product_arr["title"] = trim($h1_tags_list->item(0)->nodeValue);
         /*echo("<pre>");
         var_dump($product_arr);
         echo("</pre>");*/

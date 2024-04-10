@@ -47,7 +47,7 @@ if ($err) {
     if (isset($res_arr["message"]) && $res_arr["message"] == "Produkt nie istnieje. Zweryfikuj produkt i spróbuj ponownie.")
         die(json_encode(array("success" => false, "object" => array("errorReason" => "usunięto"))));
     $out_arr = array(
-        "title" => $res_arr["name"],
+        "title" => trim($res_arr["name"]),
         "price" => $res_arr["price"],
         //"url" => "https://eduj.pl/produkt/{$request["sku"]}",
         //"sku" => "https://eduj.pl/produkt/{$res_arr["sku"]}",
