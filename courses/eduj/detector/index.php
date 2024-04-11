@@ -194,7 +194,7 @@ function mapCourseItems($response) {
     $courses = array();
     foreach ($arr["data"]["products"]["items"] as $value) {
         $courses[] = array(
-            "title" => $value["name"],
+            "title" => trim($value["name"]),
             "price" => $value["price_range"]["maximum_price"]["regular_price"]["value"],
             "url" => "https://eduj.pl/produkt/{$value["sku"]}",
             /*"platform" => array(
