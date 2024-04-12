@@ -2,6 +2,16 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 
+function create_valid_url($url) {
+    // Odkoduj znaki procentowe
+    $decoded_url = rawurldecode($url);
+
+    // Ponownie zakoduj adres URL, ale bez kodowania ":" oraz "/"
+    $valid_url = str_replace(['%3A', '%2F'], [':', '/'], rawurlencode($decoded_url));
+
+    return $valid_url;
+}
+
 // Funkcja do pobierania obrazka z określonego URL
 function fetch_image($url) {
     // Inicjalizacja sesji cURL
@@ -47,45 +57,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Sprawdzanie, czy otrzymano poprawne dane
         if (isset($data['url']) && isset($data['id'])) {
             // Pobieranie adresu URL obrazka i jego identyfikatora
-            $image_url = $data['url'];
+            $image_url = create_valid_url($data['url']);
             $image_id = $data['id'];
 
             $image_content = @file_get_contents($image_url);
             if ($image_content === false)
                 $image_content = @file_get_contents(preg_replace('/\.(jpg)$/i', '.png', $image_url));
-            /*
-            // Pobieranie rozszerzenia pliku
-            $extension = pathinfo($image_url, PATHINFO_EXTENSION);
-
-            // Tablica z możliwymi rozszerzeniami do próby
-            $extensions_to_try = ['webp', 'jpg', 'png'];
-
-            // Iteracja przez możliwe rozszerzenia
-            foreach ($extensions_to_try as $ext) {
-                // Jeśli rozszerzenie jest różne od obecnego, to próbujemy pobrania obrazka
-                if ($ext !== $extension) {
-                    // Próba zmiany rozszerzenia w adresie URL
-                    $url_attempt = preg_replace('/\.(jpg|png)$/i', '.' . $ext, $image_url);
-
-                    // Pobieranie obrazka z próbnego adresu URL
-                    $image_content = fetch_image($url_attempt);
-
-                    // Jeśli pobranie obrazka się powiodło, to przerywamy pętlę
-                    if ($image_content !== false) {
-                        break;
-                    }
-                }
-            }
-            */
 
             // Sprawdzenie, czy udało się pobrać obrazek
             if ($image_content !== false) {
-                // Konwersja obrazka do formatu webp
-                $webp_image = @imagecreatefromstring($image_content);
-
-                if ($webp_image == false)
-                    die(json_encode(array('success' => false, 'message' => 'Błąd podczas tworzenia obrazka')));
-
                 // Utworzenie nazwy pliku z nowym rozszerzeniem
                 $new_filename = $image_id . '.webp';
 
@@ -97,23 +77,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Ścieżka do zapisu przekonwertowanego obrazka
                 $destination_path = $images_dir . '/' . $new_filename;
 
-                // Zapis przekonwertowanego obrazka do pliku
-                $is_imagewebp_saved = @imagewebp($webp_image, $destination_path);
+                // Zapis przekonwertowanego obrazka do pliku za pomocą Imagick
+                $imagick = new Imagick();
+                $imagick->readImageBlob($image_content);
+                $imagick->setImageFormat('webp');
+                $imagick->writeImage($destination_path);
+                $imagick->clear();
+                $imagick->destroy();
 
-                if ($is_imagewebp_saved != true) // Zwracanie odpowiedzi sukcesu
-                    echo json_encode(array('success' => false, 'message' => 'Obrazek niew został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
-
-                // Zwalnianie zasobów
-                $is_image_destroyed = @imagedestroy($webp_image);
-
-                if ($is_image_destroyed != true)
-                    error_log("Nie udało się niszczenie informacji o obrazku w pamięci");
-
-                if ($is_imagewebp_saved == true) // Zwracanie odpowiedzi sukcesu
-                    echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
+                echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
             } else {
                 // Zwracanie odpowiedzi, że nie udało się pobrać obrazka
-                echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka: ' . $image_url));
+                echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka: ' . $image_url), JSON_UNESCAPED_SLASHES);
             }
         } else {
             // Zwracanie odpowiedzi w przypadku braku wymaganych danych
