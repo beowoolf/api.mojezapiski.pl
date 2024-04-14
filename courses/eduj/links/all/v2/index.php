@@ -7,10 +7,10 @@ function getLinksFromSitemapXml() {
     $url = 'https://eduj.pl/sitemap.xml';
     $current_dir = __DIR__;
     if (strpos($current_dir, "all/v")!= false) {
-        //error_log("$current_dir jest wersjonowane");
+        error_log("$current_dir jest wersjonowane");
         $current_dir = "$current_dir/..";
-    } /*else
-        error_log("$current_dir NIE jest wersjonowane");*/
+    } else
+        error_log("$current_dir NIE jest wersjonowane");
     $cacheTable = "$current_dir/../../cache.db"; // Nazwa pliku bazy SQLite
     $edujTable = 'eduj';
     
