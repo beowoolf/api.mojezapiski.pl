@@ -55,44 +55,68 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $data = json_decode($json_data, true);
 
         // Sprawdzanie, czy otrzymano poprawne dane
-        if (isset($data['url']) && isset($data['id'])) {
-            // Pobieranie adresu URL obrazka i jego identyfikatora
-            $image_url = create_valid_url($data['url']);
-            $image_id = $data['id'];
-
-            $image_content = @file_get_contents($image_url);
-            if ($image_content === false)
-                $image_content = @file_get_contents(preg_replace('/\.(jpg)$/i', '.png', $image_url));
-
-            // Sprawdzenie, czy udało się pobrać obrazek
-            if ($image_content !== false) {
-                // Utworzenie nazwy pliku z nowym rozszerzeniem
-                $new_filename = $image_id . '.webp';
-
-                $images_dir = __DIR__ . '/courses';
-
-                if (createDirIfNotExist($images_dir) == false)
-                    die(json_encode(array('success' => false, 'message' => 'Błąd tworzenia katalogu na obrazki')));
-
-                // Ścieżka do zapisu przekonwertowanego obrazka
-                $destination_path = $images_dir . '/' . $new_filename;
-
-                // Zapis przekonwertowanego obrazka do pliku za pomocą Imagick
-                $imagick = new Imagick();
-                $imagick->readImageBlob($image_content);
-                $imagick->setImageFormat('webp');
-                $imagick->writeImage($destination_path);
-                $imagick->clear();
-                $imagick->destroy();
-
-                echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
+        if (isset($data['url']) && isset($data['id']) && isset($data['key'])) {
+            require __DIR__."/key.php";
+            if ($data['key'] == $key) {
+                // Pobieranie adresu URL obrazka i jego identyfikatora
+                $image_url = create_valid_url($data['url']);
+                $image_id = $data['id'];
+    
+                $image_content = @file_get_contents($image_url);
+                if ($image_content === false)
+                    $image_content = @file_get_contents(preg_replace('/\.(jpg)$/i', '.png', $image_url));
+    
+                // Sprawdzenie, czy udało się pobrać obrazek
+                if ($image_content !== false) {
+                    $enviroments = array("prod", "dev", "test");
+                    $enviroment = "dev";
+                    if (isset($data['env']) && in_array($data['env'], $enviroments))
+                        $enviroment = $data['env'];
+                    $image_dir = "dev_images";
+                    switch ($enviroment) {
+                        case 'dev':
+                            $image_dir = "dev_courses";
+                            break;
+                        case 'test':
+                            $image_dir = "test_courses";
+                            break;
+                        case 'prod':
+                            $image_dir = "courses";
+                            break;
+                        default:
+                            $image_dir = "dev_courses";
+                            break;
+                    }
+                    // Utworzenie nazwy pliku z nowym rozszerzeniem
+                    $new_filename = $image_id . '.webp';
+    
+                    $images_dir = __DIR__ . "/$image_dir";
+    
+                    if (createDirIfNotExist($images_dir) == false)
+                        die(json_encode(array('success' => false, 'message' => 'Błąd tworzenia katalogu na obrazki')));
+    
+                    // Ścieżka do zapisu przekonwertowanego obrazka
+                    $destination_path = $images_dir . '/' . $new_filename;
+    
+                    // Zapis przekonwertowanego obrazka do pliku za pomocą Imagick
+                    $imagick = new Imagick();
+                    $imagick->readImageBlob($image_content);
+                    $imagick->setImageFormat('webp');
+                    $imagick->writeImage($destination_path);
+                    $imagick->clear();
+                    $imagick->destroy();
+    
+                    echo json_encode(array('success' => true, 'message' => 'Obrazek został pomyślnie przekonwertowany i zapisany jako ' . $new_filename));
+                } else {
+                    echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka: ' . $image_url), JSON_UNESCAPED_SLASHES);
+                }
             } else {
                 // Zwracanie odpowiedzi, że nie udało się pobrać obrazka
-                echo json_encode(array('success' => false, 'message' => 'Błąd podczas pobierania obrazka: ' . $image_url), JSON_UNESCAPED_SLASHES);
+                echo json_encode(array('success' => false, 'message' => "Nieprawidłowy 'key'"), JSON_UNESCAPED_SLASHES);
             }
         } else {
             // Zwracanie odpowiedzi w przypadku braku wymaganych danych
-            echo json_encode(array('success' => false, 'message' => 'Brak wymaganych danych (url lub id)'));
+            echo json_encode(array('success' => false, 'message' => 'Brak wymaganych danych (url lub id lub key)'));
         }
     } else {
         // Zwracanie odpowiedzi w przypadku pustego ciała żądania
