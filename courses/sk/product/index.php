@@ -47,6 +47,9 @@ function getCourseDescription($dom) {
     $input = getProductDesctiption($dom);
     // Znajdź indeks pierwszego wystąpienia frazy "ZOBACZ WIĘCEJ Kup w pakiecie i oszczędź"
     $index = strpos($input, "ZOBACZ WIĘCEJ Kup w pakiecie i oszczędź");
+
+    if ($index === false)
+        $index = strpos($input, "ZOBACZ WIĘCEJ Najczęściej kupowane w pakiecie");
     
     // Jeśli fraza została znaleziona
     if ($index !== false) {
