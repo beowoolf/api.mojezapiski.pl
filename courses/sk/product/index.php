@@ -50,6 +50,9 @@ function getCourseDescription($dom) {
 
     if ($index === false)
         $index = strpos($input, "ZOBACZ WIĘCEJ Najczęściej kupowane w pakiecie");
+
+    if ($index === false)
+        $index = strpos($input, "ZOBACZ WIĘCEJ Odbierz co drugi kurs za darmo!");
     
     // Jeśli fraza została znaleziona
     if ($index !== false) {
