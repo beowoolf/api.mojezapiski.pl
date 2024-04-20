@@ -374,7 +374,7 @@ function getMissedLinks($mapped_courses_list) {
     return array_values(array_diff($all_unique_links, $links_from_graphql));
 }
 
-function compareJsonFiles($json_file) {
+function compareJsonFiles($json_file, $reverse) {
     $json1 = @file_get_contents($json_file);
     $json2 = getFromGraphqlEndpoint();
     $res1 = mapJsonObject($json1);
@@ -389,15 +389,18 @@ function compareJsonFiles($json_file) {
     } else {
         file_put_contents($json_file, $json2);
         $courses = mapCourseItems($res2);
+        $courses_to_out = $reverse ? array_reverse($courses) : $courses;
         return array(
-            "courses" => $courses,
+            "courses" => $courses_to_out,
             "links" => getMissedLinks($courses)
         ); // Znaleziono zmiany
     }
 }
 
+$reverse = (isset($_REQUEST["reverse"]) && $_REQUEST["reverse"] == 1);
+
 $file_with_last_response = 'last.json'; // Plik na dysku
 
-echo json_encode(compareJsonFiles($file_with_last_response), JSON_UNESCAPED_SLASHES);
+echo json_encode(compareJsonFiles($file_with_last_response, $reverse), JSON_UNESCAPED_SLASHES);
 
 ?>
