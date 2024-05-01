@@ -66,7 +66,7 @@ function getSkLatestCourses() {
                 for ($a=0; $a < $productViewBoxChildNodes->length; $a++) { 
                     $divContainer = $productViewBoxChildNodes->item($a);
                     $productsNodes = $divContainer->childNodes;
-                    if ($productsNodes) {
+                    if ($productsNodes && $productsNodes->length) {
                         $productAttributesArray = array();
                         $countOfProducts = $productsNodes->length;
                         for ($i=0; $i < $countOfProducts; $i++) {
