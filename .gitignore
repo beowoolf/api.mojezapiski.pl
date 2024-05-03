@@ -1,5 +1,6 @@
 .vscode
 courses/images/key.php
+courses/sk/canonical/responses/*.json
 crashlytics_db_drv_name.php
 crashlytics_db_host_address.php
 crashlytics_db_host_port.php
