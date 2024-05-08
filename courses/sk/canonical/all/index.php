@@ -96,6 +96,11 @@ for ($id=1; $id <= $latest_id; $id++) {
     }
 }
 
-echo(json_encode($responses, JSON_UNESCAPED_SLASHES));
+$urls = array();
+foreach ($responses as $key => $value)
+    if (filter_var($value["response"], FILTER_VALIDATE_URL))
+        if (strpos($value["response"], "https://strefakursow.pl/kursy/") !== false)
+            $urls[] = $value["response"];
+echo(json_encode($urls, JSON_UNESCAPED_SLASHES));
 
 ?>
