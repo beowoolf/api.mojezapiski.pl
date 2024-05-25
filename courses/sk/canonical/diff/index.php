@@ -1,5 +1,7 @@
 <?php
 
+header("Content-Type: application/json; charset=UTF-8");
+
 function getPage($input_link) {
     $curl = curl_init();
 
@@ -36,7 +38,7 @@ $links_from_sitemap = getPage("https://api.mojezapiski.pl/courses/sk/");
 if (!$links_from_sitemap || strpos($links_from_sitemap["response"], "[") === false)
     die(json_encode(array("success" => false, "message" => "Error while get links from sitemap")));
 
-$all_canonical_response = getPage("http://localhost/api/courses/sk/canonical/all/");
+$all_canonical_response = getPage("https://api.mojezapiski.pl/courses/sk/canonical/all/");
 if (!$all_canonical_response || strpos($all_canonical_response["response"], "[") === false)
     die(json_encode(array("success" => false, "message" => "Error while get canonical links from canonical/all")));
 
@@ -44,8 +46,8 @@ $diff = array();
 $sitemap_arr = json_decode($links_from_sitemap["response"], true);
 $canonical_arr = json_decode($all_canonical_response["response"], true);
 foreach ($canonical_arr as $key => $value)
-    if (strpos($value["response"], "https://strefakursow.pl/kursy/") === 0 && !in_array($value["response"], $sitemap_arr))
-        $diff[] = $value["response"];
+  if (strpos($value, "https://strefakursow.pl/kursy/") === 0 && !in_array($value, $sitemap_arr))
+    $diff[] = $value;
 
 echo(json_encode($diff, JSON_UNESCAPED_SLASHES));
 
