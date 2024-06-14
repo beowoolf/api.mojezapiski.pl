@@ -38,7 +38,7 @@ $links_from_sitemap = getPage("https://api.mojezapiski.pl/courses/sk/");
 if (!$links_from_sitemap || strpos($links_from_sitemap["response"], "[") === false)
     die(json_encode(array("success" => false, "message" => "Error while get links from sitemap")));
 
-$all_canonical_response = getPage("https://api.mojezapiski.pl/courses/sk/canonical/all/");
+$all_canonical_response = getPage("https://api.mojezapiski.pl/courses/sk/canonical/links/");
 if (!$all_canonical_response || strpos($all_canonical_response["response"], "[") === false)
     die(json_encode(array("success" => false, "message" => "Error while get canonical links from canonical/all")));
 
