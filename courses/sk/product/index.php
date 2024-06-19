@@ -30,13 +30,14 @@ function getByClassName($dom, $className) {
         if ($value->hasAttribute("class") == true) {
             $css_classes = explode(" ", $value->getAttribute("class"));
             if (in_array($className, $css_classes))
-                return str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",trim(str_replace("\r","", str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))))))));
+                return str_replace("  "," ",str_replace("\t","", str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",str_replace("  "," ",trim(str_replace("\r","", str_replace("\n"," ", str_replace("  ", "", $value->nodeValue))))))))));
         }
     return "";
 }
 
 function getErrorReason($dom) {
-    return getByClassName($dom, "sciezki-kariery__sticky-menu");
+    $errorReason = getByClassName($dom, "sciezki-kariery__sticky-menu");
+    return ($errorReason ? $errorReason : getByClassName($dom, "p-order-completed"));
 }
 
 function getProductDesctiption($dom) {
@@ -230,6 +231,8 @@ function getPage($input_link) {
     $curl = curl_init();
 
     curl_setopt_array($curl, [
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYPEER => false,
       CURLOPT_URL => $input_link,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_FOLLOWLOCATION => 1,
