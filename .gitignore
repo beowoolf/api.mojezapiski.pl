@@ -1,0 +1,16 @@
+.vscode
+courses/images/key.php
+courses/sk/canonical/responses/*.json
+crashlytics_db_drv_name.php
+crashlytics_db_host_address.php
+crashlytics_db_host_port.php
+crashlytics_db_name.php
+crashlytics_db_user_name.php
+crashlytics_db_user_password.php
+users_for_crashlytics.php
+github/pat.php
+my-car/admin_password.php
+last.*
+*.db
+*.sqlite3
+*.webp
