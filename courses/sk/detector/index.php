@@ -274,6 +274,18 @@ function fetchSitemapLinks() {
     $db->close();
 }
 
+function getProductsByClassName($dom, $className) {
+    $pageDivs = $dom->getElementsByTagName("div");
+    $divsToReturn = array();
+    foreach ($pageDivs as $key => $value)
+        if ($value->hasAttribute("class") == true) {
+            $css_classes = explode(" ", $value->getAttribute("class"));
+            if (in_array($className, $css_classes))
+                $divsToReturn[] = $value;
+        }
+    return $divsToReturn;
+}
+
 function getByClassName($dom, $className) {
     $pageDivs = $dom->getElementsByTagName("div");
     foreach ($pageDivs as $key => $value)
@@ -311,66 +323,54 @@ function getPromoBannerTextAndNewCoursesFromHtmlCode($html) {
     $doc = new DOMDocument();
     
     if ($doc->loadHTML($html)) {
-        $productViewBox = $doc->getElementById("product-view-box");
-        if ($productViewBox) {
-            $productViewBoxChildNodes = $productViewBox->childNodes;
-            if ($productViewBoxChildNodes->length > 0) {
-                for ($a=0; $a < $productViewBoxChildNodes->length; $a++) { 
-                    $divContainer = $productViewBoxChildNodes->item($a);
-                    $productsNodes = $divContainer->childNodes;
-                    if ($productsNodes && $productsNodes->length) {
-                        $productAttributesArray = array();
-                        $countOfProducts = $productsNodes->length;
-                        for ($i=0; $i < $countOfProducts; $i++) {
-                            $productDiv = $productsNodes->item($i);
-                            $productAttributes = $productDiv->attributes;
-                            if ($productAttributes !== null) {
-                                $countOfProductAttributes = $productAttributes->length;
-                                for ($j=0; $j < $countOfProductAttributes; $j++) { 
-                                    $attrNode = $productAttributes->item($j);
-                                    if ($attrNode->nodeName === "onclick") {
-                                        $attrNodeValue = $attrNode->nodeValue;
-                                        $str = getContentBetweenParentheses($attrNodeValue);
-                                        $valid_json = str_replace("'", '"', "[" . substr($str, 1, strlen($str) - 2) . "]");
-                                        $array = json_decode($valid_json, true);
-                                        $product = array();
-                                        $product["id"] = $array[0];
-                                        $product["title"] = $array[1];
-                                        $product["categories"] = array();
-                                        for ($b=2; $b < 5; $b++)
-                                            if($array[$b] != "brak")
-                                                $product["categories"][] = $array[$b];
-                                        $product["author"] = $array[5];
-                                        $product["position"] = $array[6];
-                                        $product["price"] = $array[7];
-                                        $productChilds = $productDiv->childNodes;
-                                        $countOfProductChilds = $productChilds->length;
-                                        for ($k=0; $k < $countOfProductChilds; $k++) { 
-                                            $productChildNode = $productChilds->item($k);
-                                            $productChildAttributes = $productChildNode->attributes;
-                                            if ($productChildAttributes !== null) {
-                                                $countOfProductChildAttributes = $productChildAttributes->length;
-                                                for ($l=0; $l < $countOfProductChildAttributes; $l++) { 
-                                                    $productChildAttrNode = $productChildAttributes->item($l);
-                                                    if ($productChildAttrNode->nodeName === "href")
-                                                        $product["url"] = "https://strefakursow.pl".$productChildAttrNode->nodeValue;
-                                                }
-                                            }
-                                        }
-                                        $productAttributesArray[] = $product;
+        $products = getProductsByClassName($doc, "b-product-box");
+        if ($products && count($products)) {
+            $productAttributesArray = array();
+            $countOfProducts = count($products);
+            for ($i=0; $i < $countOfProducts; $i++) {
+                $productDiv = $products[$i];
+                $productAttributes = $productDiv->attributes;
+                if ($productAttributes !== null) {
+                    $countOfProductAttributes = $productAttributes->length;
+                    for ($j=0; $j < $countOfProductAttributes; $j++) { 
+                        $attrNode = $productAttributes->item($j);
+                        if ($attrNode->nodeName === "onclick") {
+                            $attrNodeValue = $attrNode->nodeValue;
+                            $str = getContentBetweenParentheses($attrNodeValue);
+                            $valid_json = str_replace("'", '"', "[" . substr($str, 1, strlen($str) - 2) . "]");
+                            $array = json_decode($valid_json, true);
+                            $product = array();
+                            $product["id"] = $array[0];
+                            $product["title"] = $array[1];
+                            $product["categories"] = array();
+                            for ($b=2; $b < 5; $b++)
+                                if($array[$b] != "brak")
+                                    $product["categories"][] = $array[$b];
+                            $product["author"] = $array[5];
+                            $product["position"] = $array[6];
+                            $product["price"] = $array[7];
+                            $productChilds = $productDiv->childNodes;
+                            $countOfProductChilds = $productChilds->length;
+                            for ($k=0; $k < $countOfProductChilds; $k++) { 
+                                $productChildNode = $productChilds->item($k);
+                                $productChildAttributes = $productChildNode->attributes;
+                                if ($productChildAttributes !== null) {
+                                    $countOfProductChildAttributes = $productChildAttributes->length;
+                                    for ($l=0; $l < $countOfProductChildAttributes; $l++) { 
+                                        $productChildAttrNode = $productChildAttributes->item($l);
+                                        if ($productChildAttrNode->nodeName === "href")
+                                            $product["url"] = "https://strefakursow.pl".$productChildAttrNode->nodeValue;
                                     }
                                 }
                             }
+                            $productAttributesArray[] = $product;
                         }
-                        $promoBannerText = getPromoBannerTextFromHtmlCode($html);
-                        return(json_encode(array("success" => true, "products" => $productAttributesArray, "promoBannerText" => $promoBannerText)));
-                        break;
                     }
                 }
-            } else
-                return(json_encode(array("success" => false, "message" => "Error while get product-view-box childNodes")));
-        } else
-            return(json_encode(array("success" => false, "message" => "Error while getElementId operation for id product-view-box")));
+            }
+            $promoBannerText = getPromoBannerTextFromHtmlCode($html);
+            return(json_encode(array("success" => true, "products" => $productAttributesArray, "promoBannerText" => $promoBannerText)));
+        }
     } else
         return(json_encode(array("success" => false, "message" => "Error while HTML loading")));
 }
