@@ -98,6 +98,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     // Ścieżka do zapisu przekonwertowanego obrazka
                     $destination_path = $images_dir . '/' . $new_filename;
     
+                    if (strpos($image_url, ".webp") !== false) {
+                      @file_put_contents($destination_path, $image_content);
+                      die(json_encode(array('success' => true, 'message' => 'Obrazek webp został pomyślnie zapisany jako ' . $new_filename)));
+                    }
+    
                     // Zapis przekonwertowanego obrazka do pliku za pomocą Imagick
                     $imagick = new Imagick();
                     $imagick->readImageBlob($image_content);
