@@ -21,7 +21,7 @@ function tryReturnThumbnail($dom) {
     $pageLinks = $dom->getElementsByTagName("span");
     foreach ($pageLinks as $key => $value)
         if ($value->hasAttribute("itemprop") == true && $value->getAttribute("itemprop") == "sku" && $value->hasAttribute("content") == true)
-            return "https://strefafilmy.s3.amazonaws.com/product_picture/".$value->getAttribute("content")."/cover-full.jpg";
+            return "https://strefafilmy.s3.amazonaws.com/product_picture/".$value->getAttribute("content")."/cover-full.webp";
     /*$xpath = new DOMXPath($dom);
     $product_id_xpath = '//*[@id="product_id"]';
     $nodeList = $xpath->query($product_id_xpath);
