@@ -269,6 +269,7 @@ function getPage($input_link) {
 }
 
 $page = getPage($url);
+//if ($page === "") die(json_encode(array("success" => false, "object" => array("errorReason" => "Pusty plik HTML"))));
 $html = $page["response"];
 $effective_url = $page["effective_url"];
 
