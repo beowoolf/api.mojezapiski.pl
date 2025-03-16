@@ -66,7 +66,7 @@ if ($err) {
         if ($value["attribute_code"] === "author") {
             $out_arr["authorId"] = intval($value["value"]);
             //break;
-        } else if ($value["attribute_code"] === "image_url") $out_arr["thumbnail"] = str_replace("/thumbnail.jpeg","/thumbnail_848x480.jpeg", $value["value"]);
+        } else if ($value["attribute_code"] === "image_url") $out_arr["thumbnail"] = str_replace("/thumbnail.jpeg","/thumbnail.jpeg", $value["value"]);
         else if ($value["attribute_code"] === "category_ids") $out_arr["categoryIds"] = convertStringArrayToIntArray($value["value"]);
         else if ($value["attribute_code"] === "description") $out_arr["description"] = strip_tags($value["value"]);
     echo(json_encode(array("success" => true, "object" => $out_arr), JSON_UNESCAPED_SLASHES));
