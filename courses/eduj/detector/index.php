@@ -206,7 +206,7 @@ function mapCourseItems($response) {
                 "subscriptionMode" => false
             ),*/
             "discountedPrice" => $value["price_range"]["minimum_price"]["final_price"]["value"],
-            "thumbnail" => str_replace("/thumbnail.jpeg","/thumbnail_848x480.jpeg", $value["image_url"]),
+            "thumbnail" => str_replace("/thumbnail.jpeg","/thumbnail.jpeg", $value["image_url"]),
             "authorId" => $value["author_id"],
             "categoryIds" => mapCategories($value["categories"]),
             "description" => strip_tags($value["description"])
